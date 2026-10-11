@@ -1,0 +1,24 @@
+{
+  "name": "横浜花博管理アプリ",
+  "short_name": "横浜花博管理",
+  "description": "家族で共有する横浜花博の予定・交通・宿泊管理",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f9f6",
+  "theme_color": "#146b5d",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
