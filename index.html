@@ -156,7 +156,7 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 <div id="events"></div>
 <input id="importFile" type="file" accept="application/json,.json" hidden onchange="importData(event)"><footer>※登録内容は認証済みの家族メンバー間で共有されます。共用端末では利用後にログアウトしてください。</footer></main>
 <div class="modalback" id="overlay" onclick="if(event.target===this)closeForm()"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="formTitle"><h2 id="formTitle">予定を登録</h2><form id="form"><input type="hidden" id="id"><div class="fields">
-<label class="field">種類<select id="type" onchange="typeChange()"><option value="train">🚃 電車</option><option value="shinkansen">🚄 新幹線</option><option value="bus">🚌 シャトルバス</option><option value="flight">✈️ 飛行機</option><option value="expo">🎟️ 花博・パビリオン予約</option><option value="hotel">🏨 ホテル</option><option value="other">📍 その他</option></select></label>
+<label class="field">種類<select id="type" onchange="typeChange()"><option value="train">🚃 電車</option><option value="shinkansen">🚄 新幹線</option><option value="bus">🚌 シャトルバス</option><option value="flight">✈️ 飛行機</option><option value="expo">🎟️ 花博</option><option value="pavilion">🏵️ パビリオン</option><option value="hotel">🏨 ホテル</option><option value="other">📍 その他</option></select></label>
 <label class="field">開始日 *<input id="startDate" type="date" required></label><label class="field">開始時刻<input id="startTime" type="time" step="60"></label>
 <label class="field" id="endDateLabel">終了日<input id="endDate" type="date"></label><label class="field">終了時刻<input id="endTime" type="time" step="60"></label>
 <label class="field" id="fromLabel">出発地・乗車駅<input id="from" placeholder="例：羽田空港"></label><label class="field" id="toLabel">到着地・降車駅<input id="to" placeholder="例：瀬谷駅"></label>
@@ -165,7 +165,7 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 <label class="field full">メモ<textarea id="memo" placeholder="集合場所、チェックイン方法、持ち物など"></textarea></label>
 </div><div class="modalfooter"><button type="button" class="btn red" id="editDeleteBtn" onclick="deleteFromEditor()" style="display:none;margin-right:auto">削除</button><button type="button" class="btn alt" onclick="closeForm()">キャンセル</button><button type="submit">保存する</button></div></form></div></div>
 <script>
-const KEY='greenexpo-trip-v1';const types={train:['🚃','電車','transport'],shinkansen:['🚄','新幹線','transport'],bus:['🚌','シャトルバス','transport'],flight:['✈️','飛行機','transport'],expo:['🎟️','花博','expo'],hotel:['🏨','宿泊','hotel'],other:['📍','その他','other']};let entries=[];let selectedDay='';let calendarMonth='';let initialScheduleLoaded=false;
+const KEY='greenexpo-trip-v1';const types={train:['🚃','電車','transport'],shinkansen:['🚄','新幹線','transport'],bus:['🚌','シャトルバス','transport'],flight:['✈️','飛行機','transport'],expo:['🎟️','花博','expo'],pavilion:['🏵️','パビリオン','expo'],hotel:['🏨','宿泊','hotel'],other:['📍','その他','other']};let entries=[];let selectedDay='';let calendarMonth='';let initialScheduleLoaded=false;
 let db, auth, unsub=null, loggedIn=false, isMember=false;
 const el=id=>document.getElementById(id);const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function setStatus(msg,error=false){const n=el('syncStatus');n.textContent=msg;n.classList.toggle('error',error);n.style.display=(!error && msg.startsWith('同期済み'))?'none':'block'}
@@ -205,17 +205,18 @@ function typeChange(){
  const labels={
   train:['乗車駅','降車駅'],shinkansen:['乗車駅','降車駅'],
   bus:['乗車場所','降車場所'],flight:['出発空港','到着空港'],
-  expo:['場所・パビリオン','受付・集合場所'],hotel:['宿泊施設名',''],
+  expo:['場所','予約時間'],pavilion:['パビリオン名・場所','受付・集合場所'],hotel:['宿泊施設名',''],
   other:['場所・出発地','到着地・詳細']
  };
  const names=labels[t]||labels.other;
  el('fromLabel').firstChild.textContent=names[0];
  el('toLabel').firstChild.textContent=names[1];
  // 非表示の入力値は編集時に消さず、既存の予約情報を保持します。
- el('endDateLabel').hidden=['train','shinkansen','bus','flight'].includes(t);
- el('toLabel').hidden=t==='hotel';
- el('serviceLabel').hidden=['bus','expo','hotel'].includes(t);
- el('seatLabel').hidden=['train','bus','flight','expo'].includes(t);
+ el('endDateLabel').hidden=['train','shinkansen','bus','flight','expo','pavilion'].includes(t);
+ el('fromLabel').hidden=t==='expo';
+ el('toLabel').hidden=['hotel','pavilion'].includes(t);
+ el('serviceLabel').hidden=['bus','expo','pavilion','hotel'].includes(t);
+ el('seatLabel').hidden=['train','bus','flight','expo','pavilion'].includes(t);
  el('serviceLabel').firstChild.textContent=t==='train'?'路線名':t==='flight'?'便名':t==='shinkansen'?'列車名・予約区分':'便名・列車名・予約区分';
  el('seatLabel').firstChild.textContent=t==='hotel'?'部屋・人数':t==='shinkansen'?'座席':'座席・部屋・人数';
 }
