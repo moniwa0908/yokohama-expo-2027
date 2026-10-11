@@ -18,12 +18,25 @@
 /* Compact top layout after removing descriptive text */
 header{padding-top:16px;padding-bottom:14px}header h1{margin-bottom:0}.wrap{padding-top:12px}.calendar{margin-top:10px;margin-bottom:10px}.calhead{margin-bottom:8px}.daynav{margin-top:10px;margin-bottom:8px}.status{margin-bottom:10px}
 @media(max-width:640px){header{padding-top:14px;padding-bottom:12px}.wrap{padding-top:10px}.calendar{margin-top:10px;margin-bottom:9px}}
+
+/* Compact one-line header and schedule toolbar */
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:13px;padding-bottom:13px}
+header h1{margin:0;min-width:0;font-size:clamp(16px,4.1vw,25px);line-height:1.25}
+header .account{margin:0;flex:0 0 auto;align-items:center}
+#userEmail{display:none!important}
+#logoutBtn{white-space:nowrap;margin:0;padding:7px 10px;font-size:12px}
+.wrap{padding-top:9px}
+.top{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:8px}
+.top>div{min-width:0}
+.top h2{font-size:clamp(17px,4.4vw,23px);white-space:nowrap}
+.top>button{flex:0 0 auto;white-space:nowrap;width:auto;max-width:none;padding:8px 11px;font-size:13px}
+@media(max-width:640px){header{padding:12px 10px}header h1{font-size:clamp(15px,4.2vw,22px)}.wrap{padding-top:9px}.top{align-items:center;flex-wrap:nowrap}.top>button{width:auto;max-width:none;padding:8px 9px;font-size:12px}.top h2{font-size:clamp(16px,4.3vw,21px)}#logoutBtn{padding:7px 8px;font-size:11px}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head><body>
-<header><h1>🌸 横浜花博管理アプリ</h1><div class="account" id="account" style="display:none"><span id="userEmail"></span><button id="logoutBtn" type="button">ログアウト</button></div></header>
+<header><h1>🌸 横浜花博管理アプリ</h1><div class="account" id="account" style="display:none"><span id="userEmail" hidden></span><button id="logoutBtn" type="button">ログアウト</button></div></header>
 <section id="loginView" class="loginbox"><h2>家族専用ログイン</h2><p class="sub">Firebaseに登録したメールアドレスとパスワードでログインしてください。アカウントの新規作成はアプリからできません。</p><form id="loginForm"><label class="field">メールアドレス<input id="loginEmail" type="email" autocomplete="username" required></label><label class="field">パスワード<input id="loginPassword" type="password" autocomplete="current-password" required></label><button type="submit" id="loginBtn">ログイン</button></form><p class="sub" id="loginError" role="alert"></p></section>
 <div id="workspace">
 <main class="wrap"><div class="top"><div><h2 style="margin:0">旅行スケジュール</h2></div><button onclick="openForm()">＋ 予定を登録</button></div>
