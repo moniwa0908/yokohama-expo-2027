@@ -5,9 +5,9 @@
 
 .loginbox{max-width:470px;margin:28px auto;padding:23px;background:white;border:1px solid #d8e7df;border-radius:16px}.loginbox h2{margin-top:0}.loginbox .field{margin:12px 0}.status{font-size:13px;padding:12px;border-radius:10px;background:#e9f6ef;margin-bottom:16px}.status.error{background:#ffe8e4;color:#8c241d}.account{font-size:12px;color:#e4f4ec;margin-top:6px}#workspace{display:none}#loginView{display:block}#logoutBtn{background:#fff;color:#146b5d;padding:6px 12px;margin-left:10px}
 </style>
-<script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head><body>
 <header><h1>🌸 花博ファミリー旅程帳</h1><p>GREEN×EXPO 2027｜交通・宿泊・予約をひとつに</p><div class="account" id="account" style="display:none"><span id="userEmail"></span><button id="logoutBtn" type="button">ログアウト</button></div></header>
 <section id="loginView" class="loginbox"><h2>家族専用ログイン</h2><p class="sub">Firebaseに登録したメールアドレスとパスワードでログインしてください。アカウントの新規作成はアプリからできません。</p><form id="loginForm"><label class="field">メールアドレス<input id="loginEmail" type="email" autocomplete="username" required></label><label class="field">パスワード<input id="loginPassword" type="password" autocomplete="current-password" required></label><button type="submit" id="loginBtn">ログイン</button></form><p class="sub" id="loginError" role="alert"></p></section>
