@@ -116,6 +116,11 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 
 /* 予定日は背景で区別し、日付数字に重なるドットを非表示 */
 .caldate.has-event::after,.caldate.selected::after{content:none!important;display:none!important}
+
+/* 時刻を予定カード全体の高さに合わせて上下中央へ */
+.event{align-items:stretch}
+.event .time{align-self:stretch;justify-content:center;padding-top:0;padding-bottom:0;min-height:100%;text-align:center}
+@media(max-width:640px){.event .time{justify-content:center;padding-top:0;padding-bottom:0}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
