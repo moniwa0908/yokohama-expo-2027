@@ -212,12 +212,12 @@ function typeChange(){
  el('fromLabel').firstChild.textContent=names[0];
  el('toLabel').firstChild.textContent=names[1];
  // 非表示の入力値は編集時に消さず、既存の予約情報を保持します。
- el('endDateLabel').hidden=t==='train';
+ el('endDateLabel').hidden=['train','shinkansen'].includes(t);
  el('toLabel').hidden=t==='hotel';
  el('serviceLabel').hidden=['bus','expo','hotel'].includes(t);
  el('seatLabel').hidden=['train','bus','flight','expo'].includes(t);
  el('serviceLabel').firstChild.textContent=t==='train'?'路線名':t==='flight'?'便名':t==='shinkansen'?'列車名・予約区分':'便名・列車名・予約区分';
- el('seatLabel').firstChild.textContent=t==='hotel'?'部屋・人数':'座席・部屋・人数';
+ el('seatLabel').firstChild.textContent=t==='hotel'?'部屋・人数':t==='shinkansen'?'座席':'座席・部屋・人数';
 }
 function openForm(id=''){el('form').reset();el('id').value='';el('startDate').value=selectedDay||'2027-03-19';el('endDate').value=el('startDate').value;const e=entries.find(x=>x.id===id);if(e){Object.keys(e).forEach(k=>{if(el(k))el(k).value=e[k]||''})}el('formTitle').textContent=e?'予定を編集':'予定を登録';el('editDeleteBtn').style.display=e?'inline-block':'none';if(!el('endDate').value)el('endDate').value=el('startDate').value;typeChange();el('overlay').classList.add('show')}
 el('startDate').addEventListener('change',()=>{el('endDate').value=el('startDate').value});
