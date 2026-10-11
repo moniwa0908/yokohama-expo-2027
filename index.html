@@ -74,6 +74,18 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 /* Prominent selected date, without previous/next event buttons */
 .day-summary{font-size:21px;font-weight:800;line-height:1.4;color:#173b37;margin:12px 0 12px;letter-spacing:.01em;}
 @media(max-width:640px){.day-summary{font-size:20px;margin:11px 0 10px;}}
+/* Compact reservation cards */
+.event{gap:9px;margin-bottom:6px;align-items:stretch}
+.eventbody{padding:8px 10px;border-radius:10px}
+.eventhead{align-items:center;gap:7px;margin-bottom:3px}
+.event-ident{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;min-width:0;line-height:1.35}
+.service-inline{font-size:12px;font-weight:700;color:#275b4f;overflow-wrap:anywhere}
+.eventhead .actions{margin:0;flex:0 0 auto}
+.eventhead .actions button{padding:4px 9px}
+.place-title{margin:2px 0 1px;line-height:1.35}
+.eventbody .details{line-height:1.4}
+.event .time{padding-top:8px}
+@media(max-width:640px){.event{gap:6px;margin-bottom:6px}.eventbody{padding:7px 9px}.eventhead{gap:4px}.service-inline{font-size:11px}.eventhead .actions button{font-size:11px;padding:4px 7px}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -96,7 +108,7 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 <label class="field">便名・列車名・予約区分<input id="service" placeholder="例：のぞみ123号"></label>
 <label class="field">座席・部屋・人数<input id="seat" placeholder="例：3号車 12A・12B"></label>
 <label class="field full">メモ<textarea id="memo" placeholder="集合場所、チェックイン方法、持ち物など"></textarea></label>
-</div><div class="modalfooter"><button type="button" class="btn alt" onclick="closeForm()">キャンセル</button><button type="submit">保存する</button></div></form></div></div>
+</div><div class="modalfooter"><button type="button" class="btn red" id="editDeleteBtn" onclick="deleteFromEditor()" style="display:none;margin-right:auto">削除</button><button type="button" class="btn alt" onclick="closeForm()">キャンセル</button><button type="submit">保存する</button></div></form></div></div>
 <script>
 const KEY='greenexpo-trip-v1';const types={train:['🚃','電車・新幹線','transport'],bus:['🚌','バス','transport'],flight:['✈️','飛行機','transport'],expo:['🎟️','花博','expo'],hotel:['🏨','宿泊','hotel'],other:['📍','その他','other']};let entries=[];let selectedDay='';let calendarMonth='';let initialScheduleLoaded=false;
 let db, auth, unsub=null, loggedIn=false, isMember=false;
@@ -120,7 +132,7 @@ function render(){
  renderCalendar();
  const list=entries.filter(e=>relevantDay(e,selectedDay)).sort((a,b)=>(a.startDate+'T'+(a.startTime||'00:00')).localeCompare(b.startDate+'T'+(b.startTime||'00:00')));
  const root=el('events');
- el('daySummary').textContent=new Date(selectedDay+'T12:00:00').toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'})+' の予定：'+list.length+'件';
+ el('daySummary').textContent=new Date(selectedDay+'T12:00:00').toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
  if(!list.length){root.innerHTML='<div class="empty">この日の予定はありません。「＋ 予定を登録」から追加できます。</div>';return}
  root.innerHTML=list.map(e=>{
    const t=types[e.type]||types.other;
@@ -128,17 +140,18 @@ function render(){
    const arrival=escapeHtml(e.endTime||'');
    const timeDisplay=e.endTime?`<span class="time-start">${start}</span><span class="time-arrow">↓</span><span class="time-arrival">${arrival}</span>`:`<span class="time-start">${start}</span>`;
    const place=[e.from,e.to].filter(Boolean).map(escapeHtml).join(' → ');
-   const extra=[e.service,e.seat&&'座席・部屋など：'+e.seat,e.memo].filter(Boolean).map(escapeHtml).join('\n');
+   const extra=[e.seat&&'座席・部屋など：'+e.seat,e.memo].filter(Boolean).map(escapeHtml).join('\n');
    const dateSuffix=e.endDate&&e.endDate!==e.startDate?`<span class="event-end-date">終了日：${escapeHtml(e.endDate)}</span>`:'';
-   return `<div class="event"><div class="time">${timeDisplay}</div><div class="eventbody"><div class="eventhead"><span class="type">${t[0]} ${t[1]}</span><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button><button onclick="removeEntry('${escapeHtml(e.id)}')">削除</button></div></div>${place?`<div class="place-title">${place}</div>`:''}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
+   return `<div class="event"><div class="time">${timeDisplay}</div><div class="eventbody"><div class="eventhead"><div class="event-ident"><span class="type">${t[0]} ${t[1]}</span>${e.service?`<span class="service-inline">${escapeHtml(e.service)}</span>`:''}</div><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button></div></div>${place?`<div class="place-title">${place}</div>`:''}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
  }).join('');
 }
 function typeChange(){const t=el('type').value;el('fromLabel').firstChild.textContent=t==='hotel'?'宿泊施設名':t==='expo'?'場所・パビリオン': '出発地・乗車駅';el('toLabel').firstChild.textContent=t==='hotel'?'住所・最寄り駅':t==='expo'?'受付・集合場所':'到着地・降車駅'}
-function openForm(id=''){el('form').reset();el('id').value='';el('startDate').value=selectedDay||'2027-03-19';el('endDate').value=el('startDate').value;const e=entries.find(x=>x.id===id);if(e){Object.keys(e).forEach(k=>{if(el(k))el(k).value=e[k]||''})}el('formTitle').textContent=e?'予定を編集':'予定を登録';if(!el('endDate').value)el('endDate').value=el('startDate').value;typeChange();el('overlay').classList.add('show')}
+function openForm(id=''){el('form').reset();el('id').value='';el('startDate').value=selectedDay||'2027-03-19';el('endDate').value=el('startDate').value;const e=entries.find(x=>x.id===id);if(e){Object.keys(e).forEach(k=>{if(el(k))el(k).value=e[k]||''})}el('formTitle').textContent=e?'予定を編集':'予定を登録';el('editDeleteBtn').style.display=e?'inline-block':'none';if(!el('endDate').value)el('endDate').value=el('startDate').value;typeChange();el('overlay').classList.add('show')}
 el('startDate').addEventListener('change',()=>{el('endDate').value=el('startDate').value});
 function closeForm(){el('overlay').classList.remove('show')}
 el('form').addEventListener('submit',ev=>{ev.preventDefault();const keys=['id','type','startDate','startTime','endDate','endTime','from','to','service','seat','memo'];const e=Object.fromEntries(keys.map(k=>[k,el(k).value.trim()]));e.title=types[e.type]?.[1]||'その他';if(e.endDate&&e.endDate<e.startDate){alert('終了日は開始日以降にしてください');return}if(e.endDate===e.startDate&&e.startTime&&e.endTime&&e.endTime<e.startTime){alert('終了時刻を確認してください');return}if(!e.id)e.id=(window.crypto?.randomUUID?.()||Date.now()+'-'+Math.random());saveEntry(e).then(()=>{closeForm();chooseDay(e.startDate);setStatus('保存しました。家族の端末にも同期されます。')}).catch(err=>{console.error(err);alert('保存できませんでした。家族メンバー登録と通信状態を確認してください。')})});
-async function removeEntry(id){if(!isMember)return alert('家族メンバー登録が必要です');if(!confirm('この予定を削除しますか？'))return;try{await db.collection('reservations').doc(id).delete();setStatus('削除しました。')}catch(err){console.error(err);alert('削除できませんでした。')}}
+async function deleteFromEditor(){const id=el('id').value;if(!id)return;const ok=await removeEntry(id);if(ok)closeForm()}
+async function removeEntry(id){if(!isMember){alert('家族メンバー登録が必要です');return false;}if(!confirm('この予定を削除しますか？'))return false;try{await db.collection('reservations').doc(id).delete();setStatus('削除しました。');return true;}catch(err){console.error(err);alert('削除できませんでした。');return false;}}
 function exportData(){const blob=new Blob([JSON.stringify({app:'greenexpo-family-trip',version:1,entries},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='花博旅程バックアップ.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 async function importData(ev){const file=ev.target.files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(data.app!=='greenexpo-family-trip'||!Array.isArray(data.entries)||data.entries.length>10000||!data.entries.every(e=>e&&typeof e==='object'&&typeof e.title==='string'&&typeof e.startDate==='string'))throw Error('形式が違います');if(confirm('現在の予定をバックアップ内容に置き換えます。よろしいですか？')){const imported=data.entries.map(e=>{const o={};for(const k of ['id','type','title','startDate','startTime','endDate','endTime','from','to','service','booking','person','seat','url','memo'])o[k]=String(e[k]||'').slice(0,3000);return o});await Promise.all(imported.map(e=>saveEntry({...e,id:e.id||crypto.randomUUID()})));setStatus('バックアップの予定をクラウドに追加しました。')}}catch(err){console.error(err);alert('バックアップを読み込めませんでした。形式・権限を確認してください。')}ev.target.value=''}
 render();
