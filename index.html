@@ -159,7 +159,7 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 <div class="modalback" id="overlay" onclick="if(event.target===this)closeForm()"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="formTitle"><h2 id="formTitle">予定を登録</h2><form id="form"><input type="hidden" id="id"><div class="fields">
 <label class="field">種類<select id="type" onchange="typeChange()"><option value="train">🚃 電車</option><option value="shinkansen">🚄 新幹線</option><option value="bus">🚌 シャトルバス</option><option value="flight">✈️ 飛行機</option><option value="expo">🎟️ 花博</option><option value="pavilion">🏵️ パビリオン</option><option value="hotel">🏨 ホテル</option><option value="other">📍 その他</option></select></label>
 <label class="field">開始日 *<input id="startDate" type="date" required></label><label class="field">開始時刻<input id="startTime" type="time" step="60"></label>
-<label class="field" id="endDateLabel">終了日<input id="endDate" type="date"></label><label class="field">終了時刻<input id="endTime" type="time" step="60"></label>
+<label class="field" id="endDateLabel">終了日<input id="endDate" type="date"></label><label class="field" id="endTimeLabel">終了時刻<input id="endTime" type="time" step="60"></label>
 <label class="field" id="fromLabel">出発地・乗車駅<input id="from" placeholder="例：羽田空港"></label><label class="field" id="toLabel">到着地・降車駅<input id="to" placeholder="例：瀬谷駅"></label>
 <label class="field" id="reservationTimeLabel" hidden>予約時間<input id="reservationTime" type="time" step="60"></label>
 <label class="field" id="serviceLabel">便名・列車名・予約区分<input id="service" placeholder="例：のぞみ123号"></label>
@@ -195,12 +195,12 @@ function render(){
    const t=types[e.type]||types.other;
    const start=escapeHtml(e.startTime||'終日');
    const arrival=escapeHtml(e.endTime||'');
-   const timeDisplay=e.endTime?`<span class="time-start">${start}</span><span class="time-arrow">↓</span><span class="time-arrival">${arrival}</span>`:`<span class="time-start">${start}</span>`;
+   const timeDisplay=e.endTime&&e.type!=='hotel'?`<span class="time-start">${start}</span><span class="time-arrow">↓</span><span class="time-arrival">${arrival}</span>`:`<span class="time-start">${start}</span>`;
    const place=(e.type==='expo'?[e.from]:[e.from,e.to]).filter(Boolean).map(escapeHtml).join(' → ');
    const reservationTime=e.type==='expo'?normalizeReservationTime(e.reservationTime||e.to):'';
    const reservationLine=reservationTime?`<div class="expo-reservation-time">予約時刻：${escapeHtml(formatReservationTime(reservationTime))}</div>`:'';
-   const extra=[e.seat&&'座席・部屋など：'+e.seat,e.memo].filter(Boolean).map(escapeHtml).join('\n');
-   const dateSuffix=e.endDate&&e.endDate!==e.startDate?`<span class="event-end-date">終了日：${escapeHtml(e.endDate)}</span>`:'';
+   const extra=[e.seat&&(e.type==='hotel'?'部屋：':'座席・部屋など：')+e.seat,e.memo].filter(Boolean).map(escapeHtml).join('\n');
+   const dateSuffix=e.type!=='hotel'&&e.endDate&&e.endDate!==e.startDate?`<span class="event-end-date">終了日：${escapeHtml(e.endDate)}</span>`:'';
    return `<div class="event"><div class="time">${timeDisplay}</div><div class="eventbody"><div class="eventhead"><div class="event-ident"><span class="type">${t[0]} ${t[1]}</span>${e.service?`<span class="service-inline">${escapeHtml(e.service)}</span>`:''}</div><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button></div></div>${place?`<div class="place-title">${place}</div>`:''}${reservationLine}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
  }).join('');
 }
@@ -224,14 +224,15 @@ function typeChange(){
  el('fromLabel').firstChild.textContent=names[0];
  el('toLabel').firstChild.textContent=names[1];
  // 非表示の入力値は編集時に消さず、既存の予約情報を保持します。
- el('endDateLabel').hidden=['train','shinkansen','bus','flight','expo','pavilion'].includes(t);
+ el('endDateLabel').hidden=['train','shinkansen','bus','flight','expo','pavilion','hotel'].includes(t);
+ el('endTimeLabel').hidden=t==='hotel';
  el('fromLabel').hidden=t==='expo';
  el('toLabel').hidden=['hotel','pavilion','expo'].includes(t);
  el('reservationTimeLabel').hidden=t!=='expo';
  el('serviceLabel').hidden=['bus','expo','pavilion','hotel'].includes(t);
  el('seatLabel').hidden=['train','bus','flight','expo','pavilion'].includes(t);
  el('serviceLabel').firstChild.textContent=t==='train'?'路線名':t==='flight'?'便名':t==='shinkansen'?'列車名・予約区分':'便名・列車名・予約区分';
- el('seatLabel').firstChild.textContent=t==='hotel'?'部屋・人数':t==='shinkansen'?'座席':'座席・部屋・人数';
+ el('seatLabel').firstChild.textContent=t==='hotel'?'部屋':t==='shinkansen'?'座席':'座席・部屋・人数';
 }
 function openForm(id=''){el('form').reset();el('id').value='';el('startDate').value=selectedDay||'2027-03-19';el('endDate').value=el('startDate').value;const e=entries.find(x=>x.id===id);if(e){Object.keys(e).forEach(k=>{if(el(k))el(k).value=e[k]||''});if(e.type==='expo'&&!e.reservationTime){el('reservationTime').value=normalizeReservationTime(e.to)||''}}el('formTitle').textContent=e?'予定を編集':'予定を登録';el('editDeleteBtn').style.display=e?'inline-block':'none';if(!el('endDate').value)el('endDate').value=el('startDate').value;typeChange();el('overlay').classList.add('show')}
 el('startDate').addEventListener('change',()=>{el('endDate').value=el('startDate').value});
