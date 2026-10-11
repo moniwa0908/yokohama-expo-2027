@@ -142,6 +142,17 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 .modal .modalfooter{min-width:0;max-width:100%;overflow-x:hidden}
 @media(max-width:640px){.modalback{padding-left:8px;padding-right:8px}.modal{width:100%;max-width:100%}.modal .fields{padding-left:0;padding-right:0}}
 .expo-reservation-time{font-size:13px;color:#476258;font-weight:650;margin-top:3px;line-height:1.4}
+
+/* iPhone: keep form input borders clear of the vertical scroll indicator. */
+.modal .fields{
+  box-sizing:border-box;
+  padding-right:18px;
+  padding-left:2px;
+  scrollbar-gutter:stable;
+}
+@media(max-width:640px){
+  .modal .fields{padding-right:18px;padding-left:2px}
+}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
