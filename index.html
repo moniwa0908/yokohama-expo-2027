@@ -56,12 +56,26 @@ header .account{margin:0;flex:0 0 auto;align-items:center}
 .eventbody .details{font-size:12px;line-height:1.45;margin-top:4px}
 .event-end-date{font-size:11px;color:#687e75;display:block;margin-top:4px}
 @media(max-width:640px){.event{grid-template-columns:56px minmax(0,1fr);gap:6px}.time{font-size:16px;padding-top:9px}.eventbody{padding:8px}.place-title{font-size:15px}.eventhead .actions button{font-size:10px;padding:5px 6px}}
+
+/* Header backup dropdown */
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap}
+header h1{min-width:0;flex:1;margin:0;font-size:clamp(16px,4.1vw,25px)}
+header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:0;flex:0 0 auto}
+#logoutBtn{font-size:12px;padding:8px 9px;white-space:nowrap}
+.backup-menu{position:relative;color:#146b5d;font-size:12px;z-index:4}
+.backup-menu summary{list-style:none;cursor:pointer;background:#fff;border-radius:9px;padding:8px 9px;font-weight:700;white-space:nowrap}
+.backup-menu summary::-webkit-details-marker{display:none}
+.backup-menu summary::after{content:' ▾';font-size:10px}
+.backup-options{position:absolute;right:0;top:calc(100% + 6px);min-width:142px;background:#fff;border:1px solid #d7e4dd;border-radius:10px;box-shadow:0 8px 24px #102e2440;padding:5px;z-index:5}
+.backup-options button{display:block;width:100%;text-align:left;background:#fff;color:#146b5d;font-size:13px;padding:10px;border-radius:6px;white-space:nowrap}
+.backup-options button:hover,.backup-options button:focus{background:#e8f5ed}
+@media(max-width:390px){header{padding:14px 9px;gap:5px}header h1{font-size:15px}.backup-menu summary,#logoutBtn{padding:7px 6px;font-size:11px}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head><body>
-<header><h1>🌸 横浜花博管理アプリ</h1><div class="account" id="account" style="display:none"><span id="userEmail" hidden></span><button id="logoutBtn" type="button">ログアウト</button></div></header>
+<header><h1>🌸 横浜花博管理アプリ</h1><div class="account" id="account" style="display:none"><span id="userEmail" hidden></span><details class="backup-menu" id="backupMenu"><summary>バックアップ</summary><div class="backup-options"><button type="button" onclick="exportData();document.getElementById('backupMenu').open=false">↓ 保存する</button><button type="button" onclick="document.getElementById('importFile').click();document.getElementById('backupMenu').open=false">↑ 読み込む</button></div></details><button id="logoutBtn" type="button">ログアウト</button></div></header>
 <section id="loginView" class="loginbox"><h2>家族専用ログイン</h2><p class="sub">Firebaseに登録したメールアドレスとパスワードでログインしてください。アカウントの新規作成はアプリからできません。</p><form id="loginForm"><label class="field">メールアドレス<input id="loginEmail" type="email" autocomplete="username" required></label><label class="field">パスワード<input id="loginPassword" type="password" autocomplete="current-password" required></label><button type="submit" id="loginBtn">ログイン</button></form><p class="sub" id="loginError" role="alert"></p></section>
 <div id="workspace">
 <main class="wrap"><div class="top"><div><h2 style="margin:0">旅行スケジュール</h2></div><button onclick="openForm()">＋ 予定を登録</button></div>
@@ -69,7 +83,7 @@ header .account{margin:0;flex:0 0 auto;align-items:center}
 <section class="calendar" aria-label="月間予定カレンダー"><div class="calhead"><button type="button" class="btn alt" onclick="moveMonth(-1)" aria-label="前の月">‹ 前月</button><strong id="calendarMonth"></strong><button type="button" class="btn alt" onclick="moveMonth(1)" aria-label="次の月">次月 ›</button></div><div id="calendarGrid" class="calgrid"></div></section><div class="daynav" aria-label="予定のある日へ移動"><button type="button" class="btn alt" id="prevEvent" onclick="moveEvent(-1)">← 前の予定</button><button type="button" class="btn alt" id="nextEvent" onclick="moveEvent(1)">次の予定 →</button></div><div id="daySummary" class="sub" aria-live="polite"></div>
 <div id="syncStatus" class="status" role="status" aria-live="polite">予約情報を読み込んでいます…</div>
 <div id="events"></div>
-<div class="panel"><strong>データのバックアップ</strong><p class="sub">JSONファイルに保存・復元できます。大切な予約情報は別途保管してください。</p><div class="flex"><button class="btn alt" onclick="exportData()">⬇ バックアップを保存</button><label class="btn alt" style="cursor:pointer">⬆ バックアップを読み込む<input id="importFile" type="file" accept="application/json,.json" style="display:none" onchange="importData(event)"></label></div></div><footer>※登録内容は認証済みの家族メンバー間で共有されます。共用端末では利用後にログアウトしてください。</footer></main>
+<input id="importFile" type="file" accept="application/json,.json" hidden onchange="importData(event)"><footer>※登録内容は認証済みの家族メンバー間で共有されます。共用端末では利用後にログアウトしてください。</footer></main>
 <div class="modalback" id="overlay" onclick="if(event.target===this)closeForm()"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="formTitle"><h2 id="formTitle">予定を登録</h2><form id="form"><input type="hidden" id="id"><div class="fields">
 <label class="field">種類<select id="type" onchange="typeChange()"><option value="train">🚃 電車・新幹線</option><option value="bus">🚌 バス</option><option value="flight">✈️ 飛行機</option><option value="expo">🎟️ 花博・パビリオン予約</option><option value="hotel">🏨 ホテル</option><option value="other">📍 その他</option></select></label>
 <label class="field">開始日 *<input id="startDate" type="date" required></label><label class="field">開始時刻<input id="startTime" type="time" step="60"></label>
