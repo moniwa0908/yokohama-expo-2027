@@ -132,6 +132,15 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 .modal .field[hidden]{display:none!important}
 @media(max-width:640px){.modal{height:calc(100dvh - 14px);max-height:calc(100dvh - 14px);padding:14px 12px 10px}.modal .fields{gap:10px}.modal .modalfooter{gap:5px}.modal .modalfooter button{font-size:13px;padding:10px 11px}}
 
+
+/* iPhone: registration fields scroll vertically only, never horizontally. */
+.modalback,.modal,.modal #form,.modal .fields{min-width:0;max-width:100%;box-sizing:border-box;overflow-x:hidden}
+.modal .fields{display:flex;flex-direction:column;gap:10px;width:100%;overflow-y:auto;overflow-x:hidden;touch-action:pan-y}
+.modal .field,.modal input,.modal select,.modal textarea{min-width:0;max-width:100%;box-sizing:border-box}
+.modal .field{width:100%;flex:0 0 auto;overflow:hidden}
+.modal .field input,.modal .field select,.modal .field textarea{width:100%;display:block;font-size:16px}
+.modal .modalfooter{min-width:0;max-width:100%;overflow-x:hidden}
+@media(max-width:640px){.modalback{padding-left:8px;padding-right:8px}.modal{width:100%;max-width:100%}.modal .fields{padding-left:0;padding-right:0}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
