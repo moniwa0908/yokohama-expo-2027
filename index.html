@@ -212,7 +212,7 @@ function typeChange(){
  el('fromLabel').firstChild.textContent=names[0];
  el('toLabel').firstChild.textContent=names[1];
  // 非表示の入力値は編集時に消さず、既存の予約情報を保持します。
- el('endDateLabel').hidden=['train','shinkansen','bus'].includes(t);
+ el('endDateLabel').hidden=['train','shinkansen','bus','flight'].includes(t);
  el('toLabel').hidden=t==='hotel';
  el('serviceLabel').hidden=['bus','expo','hotel'].includes(t);
  el('seatLabel').hidden=['train','bus','flight','expo'].includes(t);
