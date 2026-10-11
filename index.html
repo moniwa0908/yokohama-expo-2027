@@ -121,6 +121,17 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 .event{align-items:stretch}
 .event .time{align-self:stretch;justify-content:center;padding-top:0;padding-bottom:0;min-height:100%;text-align:center}
 @media(max-width:640px){.event .time{justify-content:center;padding-top:0;padding-bottom:0}}
+
+/* iPhone: modal stays within the visible screen; only fields scroll. */
+.modalback{padding:env(safe-area-inset-top, 0px) 8px env(safe-area-inset-bottom, 0px);overscroll-behavior:contain}
+.modal{display:flex;flex-direction:column;width:min(650px,100%);height:min(740px,calc(100dvh - 18px));max-height:calc(100dvh - 18px);overflow:hidden;padding:16px 15px 12px;border-radius:16px}
+.modal h2{flex:0 0 auto;font-size:19px;margin:0 0 10px}
+.modal #form{display:flex;flex-direction:column;min-height:0;flex:1;overflow:hidden}
+.modal .fields{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:3px 2px 12px;align-content:start}
+.modal .modalfooter{flex:0 0 auto;margin-top:0;padding-top:10px;border-top:1px solid #e1eae3;background:white;justify-content:flex-end}
+.modal .field[hidden]{display:none!important}
+@media(max-width:640px){.modal{height:calc(100dvh - 14px);max-height:calc(100dvh - 14px);padding:14px 12px 10px}.modal .fields{gap:10px}.modal .modalfooter{gap:5px}.modal .modalfooter button{font-size:13px;padding:10px 11px}}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -140,8 +151,8 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 <label class="field">開始日 *<input id="startDate" type="date" required></label><label class="field">開始時刻<input id="startTime" type="time" step="60"></label>
 <label class="field">終了日<input id="endDate" type="date"></label><label class="field">終了時刻<input id="endTime" type="time" step="60"></label>
 <label class="field" id="fromLabel">出発地・乗車駅<input id="from" placeholder="例：羽田空港"></label><label class="field" id="toLabel">到着地・降車駅<input id="to" placeholder="例：瀬谷駅"></label>
-<label class="field">便名・列車名・予約区分<input id="service" placeholder="例：のぞみ123号"></label>
-<label class="field">座席・部屋・人数<input id="seat" placeholder="例：3号車 12A・12B"></label>
+<label class="field" id="serviceLabel">便名・列車名・予約区分<input id="service" placeholder="例：のぞみ123号"></label>
+<label class="field" id="seatLabel">座席・部屋・人数<input id="seat" placeholder="例：3号車 12A・12B"></label>
 <label class="field full">メモ<textarea id="memo" placeholder="集合場所、チェックイン方法、持ち物など"></textarea></label>
 </div><div class="modalfooter"><button type="button" class="btn red" id="editDeleteBtn" onclick="deleteFromEditor()" style="display:none;margin-right:auto">削除</button><button type="button" class="btn alt" onclick="closeForm()">キャンセル</button><button type="submit">保存する</button></div></form></div></div>
 <script>
@@ -180,7 +191,24 @@ function render(){
    return `<div class="event"><div class="time">${timeDisplay}</div><div class="eventbody"><div class="eventhead"><div class="event-ident"><span class="type">${t[0]} ${t[1]}</span>${e.service?`<span class="service-inline">${escapeHtml(e.service)}</span>`:''}</div><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button></div></div>${place?`<div class="place-title">${place}</div>`:''}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
  }).join('');
 }
-function typeChange(){const t=el('type').value;el('fromLabel').firstChild.textContent=t==='hotel'?'宿泊施設名':t==='expo'?'場所・パビリオン': '出発地・乗車駅';el('toLabel').firstChild.textContent=t==='hotel'?'住所・最寄り駅':t==='expo'?'受付・集合場所':'到着地・降車駅'}
+function typeChange(){
+ const t=el('type').value;
+ const labels={
+  train:['乗車駅','降車駅'],shinkansen:['乗車駅','降車駅'],
+  bus:['乗車場所','降車場所'],flight:['出発空港','到着空港'],
+  expo:['場所・パビリオン','受付・集合場所'],hotel:['宿泊施設名',''],
+  other:['場所・出発地','到着地・詳細']
+ };
+ const names=labels[t]||labels.other;
+ el('fromLabel').firstChild.textContent=names[0];
+ el('toLabel').firstChild.textContent=names[1];
+ // 非表示の入力値は編集時に消さず、既存の予約情報を保持します。
+ el('toLabel').hidden=t==='hotel';
+ el('serviceLabel').hidden=['bus','expo','hotel'].includes(t);
+ el('seatLabel').hidden=['train','bus','flight','expo'].includes(t);
+ el('serviceLabel').firstChild.textContent=t==='flight'?'便名':t==='shinkansen'?'列車名・予約区分':'便名・列車名・予約区分';
+ el('seatLabel').firstChild.textContent=t==='hotel'?'部屋・人数':'座席・部屋・人数';
+}
 function openForm(id=''){el('form').reset();el('id').value='';el('startDate').value=selectedDay||'2027-03-19';el('endDate').value=el('startDate').value;const e=entries.find(x=>x.id===id);if(e){Object.keys(e).forEach(k=>{if(el(k))el(k).value=e[k]||''})}el('formTitle').textContent=e?'予定を編集':'予定を登録';el('editDeleteBtn').style.display=e?'inline-block':'none';if(!el('endDate').value)el('endDate').value=el('startDate').value;typeChange();el('overlay').classList.add('show')}
 el('startDate').addEventListener('change',()=>{el('endDate').value=el('startDate').value});
 function closeForm(){el('overlay').classList.remove('show')}
