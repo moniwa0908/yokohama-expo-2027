@@ -154,37 +154,38 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
   .modal .fields{padding-right:18px;padding-left:2px}
 }
 
-/* iPhone/Safari: date and time controls must use the same box width as select. */
+/* iPhone Safari: native date/time widgets need their own intrinsic layout.
+   Do not clip their WebKit internals; keep the field itself inside the modal. */
 .modal .fields > .field{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
-.modal .field > input[type="date"],
-.modal .field > input[type="time"],
-.modal .field > input:not([type="hidden"]),
+.modal .field > input,
 .modal .field > select,
-.modal .field > textarea{
-  display:block;
-  width:100%!important;
-  min-width:0!important;
-  max-width:100%!important;
-  inline-size:100%;
-  box-sizing:border-box!important;
-  margin:0;
-  border:1px solid #ccdad2;
-  border-radius:9px;
-}
+.modal .field > textarea{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;margin:0}
 .modal .field > input[type="date"],
 .modal .field > input[type="time"]{
+  -webkit-appearance:none;
+  appearance:none;
+  position:relative;
+  display:block;
+  inline-size:100%;
+  min-inline-size:0;
+  max-inline-size:100%;
   height:44px;
   min-height:44px;
   padding:8px 10px;
+  overflow:visible;
+  text-align:left;
   font-size:16px;
-  overflow:hidden;
+  background:#fff;
+  border:1px solid #ccdad2;
+  border-radius:9px;
 }
+.modal .field > input[type="date"]::-webkit-date-and-time-value,
+.modal .field > input[type="time"]::-webkit-date-and-time-value{min-width:0;text-align:left;width:100%;}
+.modal .field > input[type="date"]::-webkit-datetime-edit,
+.modal .field > input[type="time"]::-webkit-datetime-edit{min-width:0;text-align:left;padding:0}
+.modal .field > input[type="date"]::-webkit-calendar-picker-indicator,
+.modal .field > input[type="time"]::-webkit-calendar-picker-indicator{margin:0;}
 .modal .field > select{height:44px;min-height:44px}
-.modal .fields{min-width:0;width:100%;box-sizing:border-box}
-@supports (-webkit-touch-callout:none){
-  .modal .field > input[type="date"],
-  .modal .field > input[type="time"]{-webkit-box-sizing:border-box;box-sizing:border-box;min-inline-size:0;max-inline-size:100%}
-}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
