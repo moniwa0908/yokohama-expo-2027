@@ -252,6 +252,10 @@ html,body,button,a,summary,label,input,select,textarea,.calendar,.caldate,.event
 .booking-direction-grid .booking-detail{font-size:11px;line-height:1.45;overflow-wrap:anywhere}
 .booking-direction-grid .booking-edit{margin-left:auto;padding:4px 6px;white-space:nowrap}
 @media(max-width:390px){.booking-day{padding:8px}.booking-direction-grid{gap:6px}.booking-direction-grid .booking-entry{padding:7px 5px}.booking-direction-grid .booking-kind{font-size:10px}.booking-direction-grid .booking-primary{font-size:12px}}
+
+/* Reservation management: stronger shuttle bus station names */
+#bookingsPage .bus-station-name{font-size:14px;font-weight:800;color:#173b37;overflow-wrap:anywhere}
+@media(max-width:640px){#bookingsPage .bus-station-name{font-size:13px}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -349,14 +353,14 @@ function renderBookingManagement(){
  const cards=[...groups].map(([date,items])=>{
   let content='';
   if(bookingCategory==='hotel'){
-   content=items.map(e=>`<article class="booking-entry"><div class="booking-row"><span class="booking-kind">🏨 宿泊</span>${bookingStatus(e)}<button class="booking-edit" type="button" onclick="openForm('${escapeHtml(e.id)}')">編集</button></div><div class="booking-primary">${bookingValue(e.from,'施設名未入力')}</div><div class="booking-detail">日付：${bookingDate(e.startDate)}</div><div class="booking-detail">部屋：${bookingValue(e.seat,'—')}</div>${e.memo?`<div class="booking-detail booking-memo">メモ：${escapeHtml(e.memo)}</div>`:''}</article>`).join('');
+   content=items.map(e=>`<article class="booking-entry"><div class="booking-row"><span class="booking-kind">🏨 宿泊</span>${bookingStatus(e)}</div><div class="booking-primary">${bookingValue(e.from,'施設名未入力')}</div><div class="booking-detail">日付：${bookingDate(e.startDate)}</div><div class="booking-detail">部屋：${bookingValue(e.seat,'—')}</div>${e.memo?`<div class="booking-detail booking-memo">メモ：${escapeHtml(e.memo)}</div>`:''}</article>`).join('');
   }else{
    content=['out','back'].map(dir=>{
     const subset=items.filter(e=>autoDir.get(e.id)===dir);
     const title=dir==='out'?'行き':'帰り';
     const entriesHTML=subset.length?subset.map(e=>{
-      if(bookingCategory==='bus')return `<article class="booking-entry"><div class="booking-row"><span class="booking-kind">🚌 シャトルバス</span>${bookingStatus(e)}<button class="booking-edit" type="button" onclick="openForm('${escapeHtml(e.id)}')">編集</button></div><div class="booking-primary">${bookingValue(e.startTime,'時刻未入力')}${e.endTime?' → '+escapeHtml(e.endTime):''}</div><div class="booking-detail">${dir==='out'?'出発駅':'到着駅'}：${bookingValue(dir==='out'?e.from:e.to)}</div>${e.memo?`<div class="booking-detail booking-memo">${escapeHtml(e.memo)}</div>`:''}</article>`;
-      const kind=e.type==='flight'?'✈️ 飛行機':'🚄 新幹線';return `<article class="booking-entry"><div class="booking-row"><span class="booking-kind">${kind}</span>${bookingStatus(e)}<button class="booking-edit" type="button" onclick="openForm('${escapeHtml(e.id)}')">編集</button></div><div class="booking-primary">${bookingValue(e.from)} → ${bookingValue(e.to)}</div><div class="booking-detail">時刻：${bookingValue(e.startTime,'—')}${e.endTime?' → '+escapeHtml(e.endTime):''}</div><div class="booking-detail">${e.type==='flight'?'便名':'路線・列車名'}：${bookingValue(e.service,'—')}</div>${e.seat?`<div class="booking-detail">座席：${escapeHtml(e.seat)}</div>`:''}</article>`;
+      if(bookingCategory==='bus')return `<article class="booking-entry"><div class="booking-row"><span class="booking-kind">🚌 シャトルバス</span>${bookingStatus(e)}</div><div class="booking-primary">${bookingValue(e.startTime,'時刻未入力')}${e.endTime?' → '+escapeHtml(e.endTime):''}</div><div class="booking-detail bus-station">${dir==='out'?'出発駅':'到着駅'}：<strong class="bus-station-name">${bookingValue(dir==='out'?e.from:e.to)}</strong></div>${e.memo?`<div class="booking-detail booking-memo">${escapeHtml(e.memo)}</div>`:''}</article>`;
+      const kind=e.type==='flight'?'✈️ 飛行機':'🚄 新幹線';return `<article class="booking-entry"><div class="booking-row"><span class="booking-kind">${kind}</span>${bookingStatus(e)}</div><div class="booking-primary">${bookingValue(e.from)} → ${bookingValue(e.to)}</div><div class="booking-detail">時刻：${bookingValue(e.startTime,'—')}${e.endTime?' → '+escapeHtml(e.endTime):''}</div><div class="booking-detail">${e.type==='flight'?'便名':'路線・列車名'}：${bookingValue(e.service,'—')}</div>${e.seat?`<div class="booking-detail">座席：${escapeHtml(e.seat)}</div>`:''}</article>`;
     }).join(''):'<div class="booking-slot-empty">登録なし</div>';
     return `<div class="booking-direction"><h4>${title}</h4>${entriesHTML}</div>`
    }).join('');
