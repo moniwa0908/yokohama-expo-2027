@@ -237,6 +237,9 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 
 /* iPhone: disable double-tap zoom without blocking one-finger scrolling or pinch zoom. */
 html,body,button,a,summary,label,input,select,textarea,.calendar,.caldate,.eventbody,.main-tabs,.wrap{touch-action:manipulation}
+/* 予約確認印は予定の右端（編集ボタンの右）に表示 */
+#schedulePage .eventhead .actions{display:flex;align-items:center;gap:6px;flex:0 0 auto;margin-left:auto}
+#schedulePage .eventhead .booking-mark{flex:0 0 18px;width:18px;min-height:22px;text-align:center;align-self:center}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -310,7 +313,7 @@ function render(){
    const reservationLine=reservationTime?`<div class="expo-reservation-time">予約時刻：${escapeHtml(formatReservationTime(reservationTime))}</div>`:'';
    const extra=[e.seat&&(e.type==='hotel'?'部屋：':'座席・部屋など：')+e.seat,e.memo].filter(Boolean).map(escapeHtml).join('\n');
    const dateSuffix=e.type!=='hotel'&&e.endDate&&e.endDate!==e.startDate?`<span class="event-end-date">終了日：${escapeHtml(e.endDate)}</span>`:'';
-   return `<div class="event"><div class="time"><span class="time-values">${timeDisplay}</span>${bookingDisplay}</div><div class="eventbody${e.type==='expo'?' expo-highlight':''}"><div class="eventhead"><div class="event-ident"><span class="type">${t[0]} ${t[1]}</span>${e.service?`<span class="service-inline">${escapeHtml(e.service)}</span>`:''}</div><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button></div></div>${place?`<div class="place-title">${place}</div>`:''}${reservationLine}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
+   return `<div class="event"><div class="time"><span class="time-values">${timeDisplay}</span></div><div class="eventbody${e.type==='expo'?' expo-highlight':''}"><div class="eventhead"><div class="event-ident"><span class="type">${t[0]} ${t[1]}</span>${e.service?`<span class="service-inline">${escapeHtml(e.service)}</span>`:''}</div><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button>${bookingDisplay}</div></div>${place?`<div class="place-title">${place}</div>`:''}${reservationLine}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
  }).join('');
 }
 function switchPage(page){
