@@ -186,6 +186,13 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 .modal .field > input[type="date"]::-webkit-calendar-picker-indicator,
 .modal .field > input[type="time"]::-webkit-calendar-picker-indicator{margin:0;}
 .modal .field > select{height:44px;min-height:44px}
+
+/* Booking confirmation alongside the time: ○ confirmed / blank pending / − not applicable. */
+.event .time{display:flex;flex-direction:row;justify-content:center;align-items:center;gap:2px;padding-top:0;min-width:0}
+.time-values{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0}
+.booking-mark{display:inline-flex;justify-content:center;align-items:center;align-self:center;flex:0 0 16px;width:16px;font-size:12px;font-weight:700;line-height:1;color:#a0aaa6}
+.booking-mark.confirmed{color:#16835d;font-size:15px}
+@media(max-width:640px){.event{grid-template-columns:76px minmax(0,1fr)}.event .time{gap:1px}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -206,6 +213,7 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 <label class="field" id="endDateLabel">終了日<input id="endDate" type="date"></label><label class="field" id="endTimeLabel">終了時刻<input id="endTime" type="time" step="60"></label>
 <label class="field" id="fromLabel">出発地・乗車駅<input id="from" placeholder="例：羽田空港"></label><label class="field" id="toLabel">到着地・降車駅<input id="to" placeholder="例：瀬谷駅"></label>
 <label class="field" id="reservationTimeLabel" hidden>予約時間<input id="reservationTime" type="time" step="60"></label>
+<label class="field" id="bookingConfirmedLabel">予約確認<select id="bookingConfirmed"><option value="">未確認（空白）</option><option value="yes">○ 確認済み</option></select></label>
 <label class="field" id="serviceLabel">便名・列車名・予約区分<input id="service" placeholder="例：のぞみ123号"></label>
 <label class="field" id="seatLabel">座席・部屋・人数<input id="seat" placeholder="例：3号車 12A・12B"></label>
 <label class="field full">メモ<textarea id="memo" placeholder="集合場所、チェックイン方法、持ち物など"></textarea></label>
@@ -240,12 +248,16 @@ function render(){
    const start=escapeHtml(e.startTime||'終日');
    const arrival=escapeHtml(e.endTime||'');
    const timeDisplay=e.endTime&&e.type!=='hotel'?`<span class="time-start">${start}</span><span class="time-arrow">↓</span><span class="time-arrival">${arrival}</span>`:`<span class="time-start">${start}</span>`;
+   const bookingEligible=['shinkansen','flight','hotel','bus','expo'].includes(e.type);
+   const bookingMark=bookingEligible?(e.bookingConfirmed==='yes'?'○':''):'－';
+   const bookingTitle=bookingEligible?(bookingMark?'予約確認済み':'予約未確認'):'予約確認対象外';
+   const bookingDisplay=`<span class="booking-mark${bookingMark==='○'?' confirmed':''}" title="${bookingTitle}" aria-label="${bookingTitle}">${bookingMark||'&nbsp;'}</span>`;
    const place=(e.type==='expo'?[e.from]:[e.from,e.to]).filter(Boolean).map(escapeHtml).join(' → ');
    const reservationTime=e.type==='expo'?normalizeReservationTime(e.reservationTime||e.to):'';
    const reservationLine=reservationTime?`<div class="expo-reservation-time">予約時刻：${escapeHtml(formatReservationTime(reservationTime))}</div>`:'';
    const extra=[e.seat&&(e.type==='hotel'?'部屋：':'座席・部屋など：')+e.seat,e.memo].filter(Boolean).map(escapeHtml).join('\n');
    const dateSuffix=e.type!=='hotel'&&e.endDate&&e.endDate!==e.startDate?`<span class="event-end-date">終了日：${escapeHtml(e.endDate)}</span>`:'';
-   return `<div class="event"><div class="time">${timeDisplay}</div><div class="eventbody"><div class="eventhead"><div class="event-ident"><span class="type">${t[0]} ${t[1]}</span>${e.service?`<span class="service-inline">${escapeHtml(e.service)}</span>`:''}</div><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button></div></div>${place?`<div class="place-title">${place}</div>`:''}${reservationLine}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
+   return `<div class="event"><div class="time"><span class="time-values">${timeDisplay}</span>${bookingDisplay}</div><div class="eventbody"><div class="eventhead"><div class="event-ident"><span class="type">${t[0]} ${t[1]}</span>${e.service?`<span class="service-inline">${escapeHtml(e.service)}</span>`:''}</div><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button></div></div>${place?`<div class="place-title">${place}</div>`:''}${reservationLine}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
  }).join('');
 }
 function normalizeReservationTime(value){
@@ -273,6 +285,7 @@ function typeChange(){
  el('fromLabel').hidden=t==='expo';
  el('toLabel').hidden=['hotel','pavilion','expo'].includes(t);
  el('reservationTimeLabel').hidden=t!=='expo';
+ el('bookingConfirmedLabel').hidden=!['shinkansen','flight','hotel','bus','expo'].includes(t);
  el('serviceLabel').hidden=['bus','expo','pavilion','hotel'].includes(t);
  el('seatLabel').hidden=['train','bus','flight','expo','pavilion'].includes(t);
  el('serviceLabel').firstChild.textContent=t==='train'?'路線名':t==='flight'?'便名':t==='shinkansen'?'列車名・予約区分':'便名・列車名・予約区分';
@@ -281,7 +294,7 @@ function typeChange(){
 function openForm(id=''){el('form').reset();el('id').value='';el('startDate').value=selectedDay||'2027-03-19';el('endDate').value=el('startDate').value;const e=entries.find(x=>x.id===id);if(e){Object.keys(e).forEach(k=>{if(el(k))el(k).value=e[k]||''});if(e.type==='expo'&&!e.reservationTime){el('reservationTime').value=normalizeReservationTime(e.to)||''}}el('formTitle').textContent=e?'予定を編集':'予定を登録';el('editDeleteBtn').style.display=e?'inline-block':'none';if(!el('endDate').value)el('endDate').value=el('startDate').value;typeChange();el('overlay').classList.add('show')}
 el('startDate').addEventListener('change',()=>{el('endDate').value=el('startDate').value});
 function closeForm(){el('overlay').classList.remove('show')}
-el('form').addEventListener('submit',ev=>{ev.preventDefault();const keys=['id','type','startDate','startTime','endDate','endTime','from','to','service','seat','memo','reservationTime'];const e=Object.fromEntries(keys.map(k=>[k,el(k).value.trim()]));e.title=types[e.type]?.[1]||'その他';if(e.endDate&&e.endDate<e.startDate){alert('終了日は開始日以降にしてください');return}if(e.endDate===e.startDate&&e.startTime&&e.endTime&&e.endTime<e.startTime){alert('終了時刻を確認してください');return}if(!e.id)e.id=(window.crypto?.randomUUID?.()||Date.now()+'-'+Math.random());saveEntry(e).then(()=>{closeForm();chooseDay(e.startDate);setStatus('保存しました。家族の端末にも同期されます。')}).catch(err=>{console.error(err);alert('保存できませんでした。家族メンバー登録と通信状態を確認してください。')})});
+el('form').addEventListener('submit',ev=>{ev.preventDefault();const keys=['id','type','startDate','startTime','endDate','endTime','from','to','service','seat','memo','reservationTime','bookingConfirmed'];const e=Object.fromEntries(keys.map(k=>[k,el(k).value.trim()]));e.title=types[e.type]?.[1]||'その他';if(e.endDate&&e.endDate<e.startDate){alert('終了日は開始日以降にしてください');return}if(e.endDate===e.startDate&&e.startTime&&e.endTime&&e.endTime<e.startTime){alert('終了時刻を確認してください');return}if(!e.id)e.id=(window.crypto?.randomUUID?.()||Date.now()+'-'+Math.random());saveEntry(e).then(()=>{closeForm();chooseDay(e.startDate);setStatus('保存しました。家族の端末にも同期されます。')}).catch(err=>{console.error(err);alert('保存できませんでした。家族メンバー登録と通信状態を確認してください。')})});
 async function deleteFromEditor(){const id=el('id').value;if(!id)return;const ok=await removeEntry(id);if(ok)closeForm()}
 async function removeEntry(id){if(!isMember){alert('家族メンバー登録が必要です');return false;}if(!confirm('この予定を削除しますか？'))return false;try{await db.collection('reservations').doc(id).delete();setStatus('削除しました。');return true;}catch(err){console.error(err);alert('削除できませんでした。');return false;}}
 function exportData(){const blob=new Blob([JSON.stringify({app:'greenexpo-family-trip',version:1,entries},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='花博旅程バックアップ.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
