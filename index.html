@@ -219,6 +219,9 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 .booking-slot-empty{font-size:12px;color:#99a6a0;padding:6px 9px}
 .booking-empty{padding:34px 10px;text-align:center;color:#667e73;font-size:13px}
 @media(max-width:375px){.booking-categories button{font-size:10px;padding:8px 3px}.booking-header h2{font-size:18px}}
+
+/* スケジュール内の花博のみ淡いピンクに */
+#schedulePage .eventbody.expo-highlight{background:#fff0f6;border-color:#f1c4d8}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -228,8 +231,8 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 <section id="loginView" class="loginbox"><h2>家族専用ログイン</h2><p class="sub">Firebaseに登録したメールアドレスとパスワードでログインしてください。アカウントの新規作成はアプリからできません。</p><form id="loginForm"><label class="field">メールアドレス<input id="loginEmail" type="email" autocomplete="username" required></label><label class="field">パスワード<input id="loginPassword" type="password" autocomplete="current-password" required></label><button type="submit" id="loginBtn">ログイン</button></form><p class="sub" id="loginError" role="alert"></p></section>
 <div id="workspace">
 <main class="wrap">
-<nav class="main-tabs" aria-label="画面切り替え"><button id="tabSchedule" class="active" type="button" onclick="switchPage('schedule')">旅行スケジュール</button><button id="tabBookings" type="button" onclick="switchPage('bookings')">予約管理</button></nav>
-<div id="schedulePage"><div class="top"><div><h2 style="margin:0">旅行スケジュール</h2></div><button onclick="openForm()">＋ 予定を登録</button></div>
+<nav class="main-tabs" aria-label="画面切り替え"><button id="tabSchedule" class="active" type="button" onclick="switchPage('schedule')">スケジュール</button><button id="tabBookings" type="button" onclick="switchPage('bookings')">予約管理</button></nav>
+<div id="schedulePage"><div class="top"><div><h2 style="margin:0">スケジュール</h2></div><button onclick="openForm()">＋ 予定を登録</button></div>
 
 <section class="calendar" aria-label="月間予定カレンダー"><div class="calhead"><button type="button" class="btn alt" onclick="moveMonth(-1)" aria-label="前の月">‹ 前月</button><strong id="calendarMonth"></strong><button type="button" class="btn alt" onclick="moveMonth(1)" aria-label="次の月">次月 ›</button></div><div id="calendarGrid" class="calgrid"></div></section><div id="daySummary" class="day-summary" aria-live="polite"></div>
 <div id="syncStatus" class="status" role="status" aria-live="polite">予約情報を読み込んでいます…</div>
@@ -292,7 +295,7 @@ function render(){
    const reservationLine=reservationTime?`<div class="expo-reservation-time">予約時刻：${escapeHtml(formatReservationTime(reservationTime))}</div>`:'';
    const extra=[e.seat&&(e.type==='hotel'?'部屋：':'座席・部屋など：')+e.seat,e.memo].filter(Boolean).map(escapeHtml).join('\n');
    const dateSuffix=e.type!=='hotel'&&e.endDate&&e.endDate!==e.startDate?`<span class="event-end-date">終了日：${escapeHtml(e.endDate)}</span>`:'';
-   return `<div class="event"><div class="time"><span class="time-values">${timeDisplay}</span>${bookingDisplay}</div><div class="eventbody"><div class="eventhead"><div class="event-ident"><span class="type">${t[0]} ${t[1]}</span>${e.service?`<span class="service-inline">${escapeHtml(e.service)}</span>`:''}</div><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button></div></div>${place?`<div class="place-title">${place}</div>`:''}${reservationLine}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
+   return `<div class="event"><div class="time"><span class="time-values">${timeDisplay}</span>${bookingDisplay}</div><div class="eventbody${e.type==='expo'?' expo-highlight':''}"><div class="eventhead"><div class="event-ident"><span class="type">${t[0]} ${t[1]}</span>${e.service?`<span class="service-inline">${escapeHtml(e.service)}</span>`:''}</div><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button></div></div>${place?`<div class="place-title">${place}</div>`:''}${reservationLine}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
  }).join('');
 }
 function switchPage(page){
