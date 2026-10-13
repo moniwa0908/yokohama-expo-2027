@@ -234,6 +234,9 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 .calendar-legend i{width:13px;height:13px;display:inline-block;border-radius:4px;flex:0 0 auto}
 .legend-expo{background:#fbd3e4;border:2px solid #db498a}
 .legend-other{background:#e7f3ec;border:1px solid #b9ddc7}
+
+/* iPhone: disable double-tap zoom without blocking one-finger scrolling or pinch zoom. */
+html,body,button,a,summary,label,input,select,textarea,.calendar,.caldate,.eventbody,.main-tabs,.wrap{touch-action:manipulation}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
