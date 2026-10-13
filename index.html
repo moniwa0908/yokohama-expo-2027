@@ -222,6 +222,18 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 
 /* スケジュール内の花博のみ淡いピンクに */
 #schedulePage .eventbody.expo-highlight{background:#fff0f6;border-color:#f1c4d8}
+
+/* 花博の来場日を目立たせ、それ以外の予定（支払い期限等）は淡い緑色に */
+#schedulePage .caldate.expo-day {background:#fbd3e4;color:#95134d;border:2px solid #db498a;font-weight:800}
+#schedulePage .caldate.expo-day.is-sunday,#schedulePage .caldate.expo-day.is-holiday{color:#c62828}
+#schedulePage .caldate.expo-day.is-saturday:not(.is-holiday){color:#1565c0}
+#schedulePage .caldate.has-event:not(.expo-day):not(.selected){background:#e7f3ec;border-color:#b9ddc7}
+#schedulePage .caldate.expo-day.selected{border:3px solid #b81159;box-shadow:inset 0 0 0 1px #ffffff}
+.calendar-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:9px 3px 0;font-size:11px;color:#60756b}
+.calendar-legend span{display:inline-flex;align-items:center;gap:5px}
+.calendar-legend i{width:13px;height:13px;display:inline-block;border-radius:4px;flex:0 0 auto}
+.legend-expo{background:#fbd3e4;border:2px solid #db498a}
+.legend-other{background:#e7f3ec;border:1px solid #b9ddc7}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -234,7 +246,7 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 <nav class="main-tabs" aria-label="画面切り替え"><button id="tabSchedule" class="active" type="button" onclick="switchPage('schedule')">スケジュール</button><button id="tabBookings" type="button" onclick="switchPage('bookings')">予約管理</button></nav>
 <div id="schedulePage"><div class="top"><div><h2 style="margin:0">スケジュール</h2></div><button onclick="openForm()">＋ 予定を登録</button></div>
 
-<section class="calendar" aria-label="月間予定カレンダー"><div class="calhead"><button type="button" class="btn alt" onclick="moveMonth(-1)" aria-label="前の月">‹ 前月</button><strong id="calendarMonth"></strong><button type="button" class="btn alt" onclick="moveMonth(1)" aria-label="次の月">次月 ›</button></div><div id="calendarGrid" class="calgrid"></div></section><div id="daySummary" class="day-summary" aria-live="polite"></div>
+<section class="calendar" aria-label="月間予定カレンダー"><div class="calhead"><button type="button" class="btn alt" onclick="moveMonth(-1)" aria-label="前の月">‹ 前月</button><strong id="calendarMonth"></strong><button type="button" class="btn alt" onclick="moveMonth(1)" aria-label="次の月">次月 ›</button></div><div id="calendarGrid" class="calgrid"></div><div class="calendar-legend"><span><i class="legend-expo"></i>花博に行く日</span><span><i class="legend-other"></i>その他の予定</span></div></section><div id="daySummary" class="day-summary" aria-live="polite"></div>
 <div id="syncStatus" class="status" role="status" aria-live="polite">予約情報を読み込んでいます…</div>
 <div id="events"></div></div>
 <section id="bookingsPage" hidden>
@@ -271,7 +283,7 @@ const japaneseHolidays = new Set([
 '2026-01-01','2026-01-12','2026-02-11','2026-02-23','2026-03-20','2026-04-29','2026-05-03','2026-05-04','2026-05-05','2026-05-06','2026-07-20','2026-08-11','2026-09-21','2026-09-22','2026-09-23','2026-10-12','2026-11-03','2026-11-23',
 '2027-01-01','2027-01-11','2027-02-11','2027-02-23','2027-03-21','2027-03-22','2027-04-29','2027-05-03','2027-05-04','2027-05-05','2027-07-19','2027-08-11','2027-09-20','2027-09-23','2027-10-11','2027-11-03','2027-11-23'
 ]);
-function renderCalendar(){if(!calendarMonth)calendarMonth=selectedDay.slice(0,7);const [year,month]=calendarMonth.split('-').map(Number);el('calendarMonth').textContent=year+'年'+month+'月';const first=new Date(year,month-1,1);const count=new Date(year,month,0).getDate();const scheduled=new Set(scheduledDays());let html=['日','月','火','水','木','金','土'].map(w=>'<span class="calweekday">'+w+'</span>').join('');for(let x=0;x<first.getDay();x++)html+='<span></span>';for(let d=1;d<=count;d++){const day=calendarMonth+'-'+String(d).padStart(2,'0');const has=scheduled.has(day);const weekday=new Date(year,month-1,d).getDay();const isHoliday=japaneseHolidays.has(day);const colorClass=isHoliday?' is-holiday':weekday===0?' is-sunday':weekday===6?' is-saturday':'';html+='<button type="button" class="caldate'+(has?' has-event':'')+colorClass+(day===selectedDay?' selected':'')+'" '+(day===selectedDay?'aria-current="date" ':'')+'aria-label="'+month+'月'+d+'日'+(isHoliday?'、祝日・休日':'')+(has?'、予定あり':'')+'" onclick="chooseDay(\''+day+'\')">'+d+'</button>'}el('calendarGrid').innerHTML=html;}
+function renderCalendar(){if(!calendarMonth)calendarMonth=selectedDay.slice(0,7);const [year,month]=calendarMonth.split('-').map(Number);el('calendarMonth').textContent=year+'年'+month+'月';const first=new Date(year,month-1,1);const count=new Date(year,month,0).getDate();const scheduled=new Set(scheduledDays());const expoDates=new Set(entries.filter(e=>e.type==='expo'&&/^\d{4}-\d{2}-\d{2}$/.test(e.startDate||'')).map(e=>e.startDate));let html=['日','月','火','水','木','金','土'].map(w=>'<span class="calweekday">'+w+'</span>').join('');for(let x=0;x<first.getDay();x++)html+='<span></span>';for(let d=1;d<=count;d++){const day=calendarMonth+'-'+String(d).padStart(2,'0');const has=scheduled.has(day);const isExpoDay=expoDates.has(day);const weekday=new Date(year,month-1,d).getDay();const isHoliday=japaneseHolidays.has(day);const colorClass=isHoliday?' is-holiday':weekday===0?' is-sunday':weekday===6?' is-saturday':'';html+='<button type="button" class="caldate'+(has?' has-event':'')+(isExpoDay?' expo-day':'')+colorClass+(day===selectedDay?' selected':'')+'" '+(day===selectedDay?'aria-current="date" ':'')+'aria-label="'+month+'月'+d+'日'+(isHoliday?'、祝日・休日':'')+(isExpoDay?'、花博に行く日':has?'、その他の予定あり':'')+'" onclick="chooseDay(\''+day+'\')">'+d+'</button>'}el('calendarGrid').innerHTML=html;}
 function relevantDay(e,day){return e.startDate<=day && (!e.endDate || e.endDate>=day)}
 function render(){
  if(!selectedDay){selectedDay=scheduledDays()[0]||'2027-03-19'}
