@@ -193,6 +193,32 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 .booking-mark{display:inline-flex;justify-content:center;align-items:center;align-self:center;flex:0 0 16px;width:16px;font-size:12px;font-weight:700;line-height:1;color:#a0aaa6}
 .booking-mark.confirmed{color:#16835d;font-size:15px}
 @media(max-width:640px){.event{grid-template-columns:76px minmax(0,1fr)}.event .time{gap:1px}}
+
+/* Main schedule / reservation-management views */
+[hidden]{display:none!important}
+.main-tabs{display:flex;gap:7px;margin:0 0 12px;max-width:100%}
+.main-tabs button{flex:1;min-width:0;color:#195d4c;background:#e7eee9;border-radius:10px;padding:11px 6px;font-size:14px}
+.main-tabs button.active{background:#146b5d;color:white}
+.booking-header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 12px}
+.booking-header h2{font-size:21px;margin:0;white-space:nowrap}
+.booking-header button{padding:8px 10px;font-size:12px;white-space:nowrap}
+.booking-categories{display:flex;gap:5px;margin:0 0 14px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+.booking-categories button{flex:1;min-width:0;padding:9px 5px;border-radius:9px;background:#e8efeb;color:#315e51;font-size:11px;line-height:1.3}
+.booking-categories button.active{background:#146b5d;color:#fff}
+.booking-day{padding:11px;margin:0 0 12px;background:#fff;border:1px solid #d9e7df;border-radius:14px}
+.booking-day h3{margin:0 0 9px;font-size:16px;color:#a91b55;border-bottom:2px solid #f2c0d5;padding-bottom:7px}
+.booking-entry{border:1px solid #e3ebe6;background:#f9fbf9;border-radius:10px;padding:10px;margin:7px 0}
+.booking-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.booking-kind{font-size:12px;color:#526e63;flex:1;min-width:0}
+.confirmed-label{font-size:12px;color:#15805c;font-weight:750}
+.unconfirmed-label{font-size:11px;color:#98a39e}
+.booking-edit{font-size:11px;padding:5px 7px;background:#edf4f0;color:#146b5d}
+.booking-primary{font-size:16px;font-weight:750;overflow-wrap:anywhere}
+.booking-detail{font-size:12px;line-height:1.6;margin-top:3px;color:#4c665c;overflow-wrap:anywhere;white-space:pre-wrap}
+.booking-direction{margin-top:12px}.booking-direction h4{font-size:13px;border-left:4px solid #146b5d;padding-left:8px;margin:6px 0 8px}
+.booking-slot-empty{font-size:12px;color:#99a6a0;padding:6px 9px}
+.booking-empty{padding:34px 10px;text-align:center;color:#667e73;font-size:13px}
+@media(max-width:375px){.booking-categories button{font-size:10px;padding:8px 3px}.booking-header h2{font-size:18px}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -201,11 +227,18 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 <header><h1>🌸 横浜花博管理アプリ</h1><div class="account" id="account" style="display:none"><span id="userEmail" hidden></span><details class="backup-menu" id="backupMenu"><summary>バックアップ</summary><div class="backup-options"><button type="button" onclick="exportData();document.getElementById('backupMenu').open=false">↓ 保存する</button><button type="button" onclick="document.getElementById('importFile').click();document.getElementById('backupMenu').open=false">↑ 読み込む</button></div></details><button id="logoutBtn" type="button">ログアウト</button></div></header>
 <section id="loginView" class="loginbox"><h2>家族専用ログイン</h2><p class="sub">Firebaseに登録したメールアドレスとパスワードでログインしてください。アカウントの新規作成はアプリからできません。</p><form id="loginForm"><label class="field">メールアドレス<input id="loginEmail" type="email" autocomplete="username" required></label><label class="field">パスワード<input id="loginPassword" type="password" autocomplete="current-password" required></label><button type="submit" id="loginBtn">ログイン</button></form><p class="sub" id="loginError" role="alert"></p></section>
 <div id="workspace">
-<main class="wrap"><div class="top"><div><h2 style="margin:0">旅行スケジュール</h2></div><button onclick="openForm()">＋ 予定を登録</button></div>
+<main class="wrap">
+<nav class="main-tabs" aria-label="画面切り替え"><button id="tabSchedule" class="active" type="button" onclick="switchPage('schedule')">旅行スケジュール</button><button id="tabBookings" type="button" onclick="switchPage('bookings')">予約管理</button></nav>
+<div id="schedulePage"><div class="top"><div><h2 style="margin:0">旅行スケジュール</h2></div><button onclick="openForm()">＋ 予定を登録</button></div>
 
 <section class="calendar" aria-label="月間予定カレンダー"><div class="calhead"><button type="button" class="btn alt" onclick="moveMonth(-1)" aria-label="前の月">‹ 前月</button><strong id="calendarMonth"></strong><button type="button" class="btn alt" onclick="moveMonth(1)" aria-label="次の月">次月 ›</button></div><div id="calendarGrid" class="calgrid"></div></section><div id="daySummary" class="day-summary" aria-live="polite"></div>
 <div id="syncStatus" class="status" role="status" aria-live="polite">予約情報を読み込んでいます…</div>
-<div id="events"></div>
+<div id="events"></div></div>
+<section id="bookingsPage" hidden>
+<div class="booking-header"><h2>予約管理</h2><button type="button" onclick="openForm()">＋ 予定を登録</button></div>
+<div class="booking-categories" role="group" aria-label="予約の種類"><button type="button" id="bookHotel" class="active" onclick="switchBookingCategory('hotel')">🏨 ホテル</button><button type="button" id="bookBus" onclick="switchBookingCategory('bus')">🚌 シャトルバス</button><button type="button" id="bookTravel" onclick="switchBookingCategory('travel')">✈️ 飛行機＆新幹線</button></div>
+<div id="bookingList" aria-live="polite"></div>
+</section>
 <input id="importFile" type="file" accept="application/json,.json" hidden onchange="importData(event)"><footer>※登録内容は認証済みの家族メンバー間で共有されます。共用端末では利用後にログアウトしてください。</footer></main>
 <div class="modalback" id="overlay" onclick="if(event.target===this)closeForm()"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="formTitle"><h2 id="formTitle">予定を登録</h2><form id="form"><input type="hidden" id="id"><div class="fields">
 <label class="field">種類<select id="type" onchange="typeChange()"><option value="train">🚃 電車</option><option value="shinkansen">🚄 新幹線</option><option value="bus">🚌 シャトルバス</option><option value="flight">✈️ 飛行機</option><option value="expo">🎟️ 花博</option><option value="pavilion">🏵️ パビリオン</option><option value="hotel">🏨 ホテル</option><option value="other">📍 その他</option></select></label>
@@ -214,12 +247,13 @@ header .account{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:
 <label class="field" id="fromLabel">出発地・乗車駅<input id="from" placeholder="例：羽田空港"></label><label class="field" id="toLabel">到着地・降車駅<input id="to" placeholder="例：瀬谷駅"></label>
 <label class="field" id="reservationTimeLabel" hidden>予約時間<input id="reservationTime" type="time" step="60"></label>
 <label class="field" id="bookingConfirmedLabel">予約確認<select id="bookingConfirmed"><option value="">未確認（空白）</option><option value="yes">○ 確認済み</option></select></label>
+<label class="field" id="directionLabel" hidden>行き・帰り<select id="direction"><option value="">自動判定</option><option value="out">行き</option><option value="back">帰り</option></select></label>
 <label class="field" id="serviceLabel">便名・列車名・予約区分<input id="service" placeholder="例：のぞみ123号"></label>
 <label class="field" id="seatLabel">座席・部屋・人数<input id="seat" placeholder="例：3号車 12A・12B"></label>
 <label class="field full">メモ<textarea id="memo" placeholder="集合場所、チェックイン方法、持ち物など"></textarea></label>
 </div><div class="modalfooter"><button type="button" class="btn red" id="editDeleteBtn" onclick="deleteFromEditor()" style="display:none;margin-right:auto">削除</button><button type="button" class="btn alt" onclick="closeForm()">キャンセル</button><button type="submit">保存する</button></div></form></div></div>
 <script>
-const KEY='greenexpo-trip-v1';const types={train:['🚃','電車','transport'],shinkansen:['🚄','新幹線','transport'],bus:['🚌','シャトルバス','transport'],flight:['✈️','飛行機','transport'],expo:['🎟️','花博','expo'],pavilion:['🏵️','パビリオン','expo'],hotel:['🏨','宿泊','hotel'],other:['📍','その他','other']};let entries=[];let selectedDay='';let calendarMonth='';let initialScheduleLoaded=false;
+const KEY='greenexpo-trip-v1';const types={train:['🚃','電車','transport'],shinkansen:['🚄','新幹線','transport'],bus:['🚌','シャトルバス','transport'],flight:['✈️','飛行機','transport'],expo:['🎟️','花博','expo'],pavilion:['🏵️','パビリオン','expo'],hotel:['🏨','宿泊','hotel'],other:['📍','その他','other']};let entries=[];let selectedDay='';let calendarMonth='';let initialScheduleLoaded=false;let currentPage='schedule';let bookingCategory='hotel';
 let db, auth, unsub=null, loggedIn=false, isMember=false;
 const el=id=>document.getElementById(id);const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function setStatus(msg,error=false){const n=el('syncStatus');n.textContent=msg;n.classList.toggle('error',error);n.style.display=(!error && msg.startsWith('同期済み'))?'none':'block'}
@@ -242,6 +276,7 @@ function render(){
  const list=entries.filter(e=>relevantDay(e,selectedDay)).sort((a,b)=>(a.startDate+'T'+(a.startTime||'00:00')).localeCompare(b.startDate+'T'+(b.startTime||'00:00')));
  const root=el('events');
  el('daySummary').textContent=new Date(selectedDay+'T12:00:00').toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+ if(currentPage==='bookings')renderBookingManagement();
  if(!list.length){root.innerHTML='<div class="empty">この日の予定はありません。「＋ 予定を登録」から追加できます。</div>';return}
  root.innerHTML=list.map(e=>{
    const t=types[e.type]||types.other;
@@ -259,6 +294,43 @@ function render(){
    const dateSuffix=e.type!=='hotel'&&e.endDate&&e.endDate!==e.startDate?`<span class="event-end-date">終了日：${escapeHtml(e.endDate)}</span>`:'';
    return `<div class="event"><div class="time"><span class="time-values">${timeDisplay}</span>${bookingDisplay}</div><div class="eventbody"><div class="eventhead"><div class="event-ident"><span class="type">${t[0]} ${t[1]}</span>${e.service?`<span class="service-inline">${escapeHtml(e.service)}</span>`:''}</div><div class="actions"><button onclick="openForm('${escapeHtml(e.id)}')">編集</button></div></div>${place?`<div class="place-title">${place}</div>`:''}${reservationLine}${extra?`<div class="details">${extra}</div>`:''}${dateSuffix}</div></div>`
  }).join('');
+}
+function switchPage(page){
+ currentPage=page;
+ el('schedulePage').hidden=page!=='schedule';el('bookingsPage').hidden=page!=='bookings';
+ el('tabSchedule').classList.toggle('active',page==='schedule');el('tabBookings').classList.toggle('active',page==='bookings');
+ if(page==='bookings')renderBookingManagement();
+}
+function switchBookingCategory(category){bookingCategory=category;renderBookingManagement()}
+function bookingDate(date){if(!date)return '日付未登録';const d=new Date(date+'T12:00:00');return Number.isNaN(d.getTime())?escapeHtml(date):escapeHtml(d.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'}))}
+function bookingValue(value,fallback='未入力'){return escapeHtml(value||fallback)}
+function bookingStatus(e){return e.bookingConfirmed==='yes'?'<span class="confirmed-label">○ 予約済</span>':'<span class="unconfirmed-label">未確認</span>'}
+function renderBookingManagement(){
+ const names={hotel:'bookHotel',bus:'bookBus',travel:'bookTravel'};
+ Object.keys(names).forEach(k=>el(names[k]).classList.toggle('active',k===bookingCategory));
+ const relevant=entries.filter(e=>bookingCategory==='hotel'?e.type==='hotel':bookingCategory==='bus'?e.type==='bus':['flight','shinkansen'].includes(e.type)).sort((a,b)=>(a.startDate+'T'+(a.startTime||'00:00')).localeCompare(b.startDate+'T'+(b.startTime||'00:00')));
+ if(!relevant.length){el('bookingList').innerHTML='<div class="booking-empty">この種類の予約はまだ登録されていません。</div>';return}
+ // 行き・帰りを指定していない過去の予約は、時刻順で交互に仮分類します。
+ const autoDir=new Map();let i=0;for(const e of relevant){autoDir.set(e.id,e.direction||((i++%2===0)?'out':'back'))}
+ const groups=new Map();for(const e of relevant){const k=e.startDate||'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e)}
+ const cards=[...groups].map(([date,items])=>{
+  let content='';
+  if(bookingCategory==='hotel'){
+   content=items.map(e=>`<article class="booking-entry"><div class="booking-row"><span class="booking-kind">🏨 宿泊</span>${bookingStatus(e)}<button class="booking-edit" type="button" onclick="openForm('${escapeHtml(e.id)}')">編集</button></div><div class="booking-primary">${bookingValue(e.from,'施設名未入力')}</div><div class="booking-detail">日付：${bookingDate(e.startDate)}</div><div class="booking-detail">部屋：${bookingValue(e.seat,'—')}</div>${e.memo?`<div class="booking-detail booking-memo">メモ：${escapeHtml(e.memo)}</div>`:''}</article>`).join('');
+  }else{
+   content=['out','back'].map(dir=>{
+    const subset=items.filter(e=>autoDir.get(e.id)===dir);
+    const title=dir==='out'?'行き':'帰り';
+    const entriesHTML=subset.length?subset.map(e=>{
+      if(bookingCategory==='bus')return `<article class="booking-entry"><div class="booking-row"><span class="booking-kind">🚌 シャトルバス</span>${bookingStatus(e)}<button class="booking-edit" type="button" onclick="openForm('${escapeHtml(e.id)}')">編集</button></div><div class="booking-primary">${bookingValue(e.startTime,'時刻未入力')}${e.endTime?' → '+escapeHtml(e.endTime):''}</div><div class="booking-detail">${dir==='out'?'出発駅':'到着駅'}：${bookingValue(dir==='out'?e.from:e.to)}</div>${e.memo?`<div class="booking-detail booking-memo">${escapeHtml(e.memo)}</div>`:''}</article>`;
+      const kind=e.type==='flight'?'✈️ 飛行機':'🚄 新幹線';return `<article class="booking-entry"><div class="booking-row"><span class="booking-kind">${kind}</span>${bookingStatus(e)}<button class="booking-edit" type="button" onclick="openForm('${escapeHtml(e.id)}')">編集</button></div><div class="booking-primary">${bookingValue(e.from)} → ${bookingValue(e.to)}</div><div class="booking-detail">時刻：${bookingValue(e.startTime,'—')}${e.endTime?' → '+escapeHtml(e.endTime):''}</div><div class="booking-detail">${e.type==='flight'?'便名':'路線・列車名'}：${bookingValue(e.service,'—')}</div>${e.seat?`<div class="booking-detail">座席：${escapeHtml(e.seat)}</div>`:''}</article>`;
+    }).join(''):'<div class="booking-slot-empty">登録なし</div>';
+    return `<div class="booking-direction"><h4>${title}</h4>${entriesHTML}</div>`
+   }).join('');
+  }
+  return `<section class="booking-day"><h3>${bookingDate(date)}</h3>${content}</section>`;
+ });
+ el('bookingList').innerHTML=cards.join('');
 }
 function normalizeReservationTime(value){
  const raw=String(value||'').trim();
@@ -286,6 +358,7 @@ function typeChange(){
  el('toLabel').hidden=['hotel','pavilion','expo'].includes(t);
  el('reservationTimeLabel').hidden=t!=='expo';
  el('bookingConfirmedLabel').hidden=!['shinkansen','flight','hotel','bus','expo'].includes(t);
+ el('directionLabel').hidden=!['shinkansen','flight','bus'].includes(t);
  el('serviceLabel').hidden=['bus','expo','pavilion','hotel'].includes(t);
  el('seatLabel').hidden=['train','bus','flight','expo','pavilion'].includes(t);
  el('serviceLabel').firstChild.textContent=t==='train'?'路線名':t==='flight'?'便名':t==='shinkansen'?'列車名・予約区分':'便名・列車名・予約区分';
@@ -294,7 +367,7 @@ function typeChange(){
 function openForm(id=''){el('form').reset();el('id').value='';el('startDate').value=selectedDay||'2027-03-19';el('endDate').value=el('startDate').value;const e=entries.find(x=>x.id===id);if(e){Object.keys(e).forEach(k=>{if(el(k))el(k).value=e[k]||''});if(e.type==='expo'&&!e.reservationTime){el('reservationTime').value=normalizeReservationTime(e.to)||''}}el('formTitle').textContent=e?'予定を編集':'予定を登録';el('editDeleteBtn').style.display=e?'inline-block':'none';if(!el('endDate').value)el('endDate').value=el('startDate').value;typeChange();el('overlay').classList.add('show')}
 el('startDate').addEventListener('change',()=>{el('endDate').value=el('startDate').value});
 function closeForm(){el('overlay').classList.remove('show')}
-el('form').addEventListener('submit',ev=>{ev.preventDefault();const keys=['id','type','startDate','startTime','endDate','endTime','from','to','service','seat','memo','reservationTime','bookingConfirmed'];const e=Object.fromEntries(keys.map(k=>[k,el(k).value.trim()]));e.title=types[e.type]?.[1]||'その他';if(e.endDate&&e.endDate<e.startDate){alert('終了日は開始日以降にしてください');return}if(e.endDate===e.startDate&&e.startTime&&e.endTime&&e.endTime<e.startTime){alert('終了時刻を確認してください');return}if(!e.id)e.id=(window.crypto?.randomUUID?.()||Date.now()+'-'+Math.random());saveEntry(e).then(()=>{closeForm();chooseDay(e.startDate);setStatus('保存しました。家族の端末にも同期されます。')}).catch(err=>{console.error(err);alert('保存できませんでした。家族メンバー登録と通信状態を確認してください。')})});
+el('form').addEventListener('submit',ev=>{ev.preventDefault();const keys=['id','type','startDate','startTime','endDate','endTime','from','to','service','seat','memo','reservationTime','bookingConfirmed','direction'];const e=Object.fromEntries(keys.map(k=>[k,el(k).value.trim()]));e.title=types[e.type]?.[1]||'その他';if(e.endDate&&e.endDate<e.startDate){alert('終了日は開始日以降にしてください');return}if(e.endDate===e.startDate&&e.startTime&&e.endTime&&e.endTime<e.startTime){alert('終了時刻を確認してください');return}if(!e.id)e.id=(window.crypto?.randomUUID?.()||Date.now()+'-'+Math.random());saveEntry(e).then(()=>{closeForm();chooseDay(e.startDate);setStatus('保存しました。家族の端末にも同期されます。')}).catch(err=>{console.error(err);alert('保存できませんでした。家族メンバー登録と通信状態を確認してください。')})});
 async function deleteFromEditor(){const id=el('id').value;if(!id)return;const ok=await removeEntry(id);if(ok)closeForm()}
 async function removeEntry(id){if(!isMember){alert('家族メンバー登録が必要です');return false;}if(!confirm('この予定を削除しますか？'))return false;try{await db.collection('reservations').doc(id).delete();setStatus('削除しました。');return true;}catch(err){console.error(err);alert('削除できませんでした。');return false;}}
 function exportData(){const blob=new Blob([JSON.stringify({app:'greenexpo-family-trip',version:1,entries},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='花博旅程バックアップ.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
