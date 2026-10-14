@@ -326,7 +326,7 @@ function render(){
    const bookingMark=bookingEligible?(e.bookingConfirmed==='yes'?'○':'未'):'－';
    const bookingTitle=bookingEligible?(bookingMark?'予約確認済み':'予約未確認'):'予約確認対象外';
    const bookingDisplay=`<span class="booking-mark${bookingMark==='○'?' confirmed':''}" title="${bookingTitle}" aria-label="${bookingTitle}">${bookingMark}</span>`;
-   const place=(e.type==='other'?[]:e.type==='expo'?[e.from]:[e.from,e.to]).filter(Boolean).map(escapeHtml).join(' → ');
+   const place=e.type==='expo'?'横浜花博':(e.type==='other'?[]:[e.from,e.to]).filter(Boolean).map(escapeHtml).join(' → ');
    const reservationTime=e.type==='expo'?normalizeReservationTime(e.reservationTime||e.to):'';
    const reservationLine=reservationTime?`<div class="expo-reservation-time">予約時刻：${escapeHtml(formatReservationTime(reservationTime))}</div>`:'';
    const extra=[e.type!=='other'&&e.seat&&(e.type==='hotel'?'部屋：':'座席・部屋など：')+e.seat,e.memo].filter(Boolean).map(escapeHtml).join('\n');
