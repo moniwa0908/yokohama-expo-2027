@@ -349,8 +349,28 @@ function renderBookingManagement(){
  Object.keys(names).forEach(k=>el(names[k]).classList.toggle('active',k===bookingCategory));
  const relevant=entries.filter(e=>bookingCategory==='hotel'?e.type==='hotel':bookingCategory==='bus'?e.type==='bus':['flight','shinkansen'].includes(e.type)).sort((a,b)=>(a.startDate+'T'+(a.startTime||'00:00')).localeCompare(b.startDate+'T'+(b.startTime||'00:00')));
  if(!relevant.length){el('bookingList').innerHTML='<div class="booking-empty">この種類の予約はまだ登録されていません。</div>';return}
- // 行き・帰りを指定していない過去の予約は、時刻順で交互に仮分類します。
- const autoDir=new Map();let i=0;for(const e of relevant){autoDir.set(e.id,e.direction||((i++%2===0)?'out':'back'))}
+ // シャトルバスは行き先・出発地を優先して判定します。
+ // 到着駅が「横浜花博」なら、手入力の行き・帰り設定より優先して必ず「行き」。
+ // 出発駅が「横浜花博」なら「帰り」。それ以外は指定済みの方向を使います。
+ // どちらも判定できない過去データのみ、日付ごとに時刻順で仮分類します。
+ const autoDir=new Map();
+ const fallbackCount=new Map();
+ for(const e of relevant){
+   const normalizePlace=v=>String(v||'').normalize('NFKC').replace(/[\s　・･\-ー]/g,'').toLowerCase();
+   const from=normalizePlace(e.from),to=normalizePlace(e.to);
+   const isExpo=v=>v.includes('横浜花博')||v.includes('green×expo')||v.includes('greenexpo');
+   let direction='';
+   if(e.type==='bus'&&isExpo(to))direction='out';
+   else if(e.type==='bus'&&isExpo(from))direction='back';
+   else if(e.direction==='out'||e.direction==='back')direction=e.direction;
+   else {
+     const date=e.startDate||'';
+     const count=fallbackCount.get(date)||0;
+     direction=count%2===0?'out':'back';
+     fallbackCount.set(date,count+1);
+   }
+   autoDir.set(e.id,direction);
+ }
  const groups=new Map();for(const e of relevant){const k=e.startDate||'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e)}
  const cards=[...groups].map(([date,items])=>{
   let content='';
